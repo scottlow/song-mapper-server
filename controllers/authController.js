@@ -55,7 +55,7 @@ async function requestSpotifyTokens(req, res) {
       email: userData.email
     },
     {
-      displayName: userData.diplay_name, 
+      displayName: userData.display_name, 
       profileImageURI: userData.images[0].url,
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token
@@ -72,7 +72,14 @@ async function requestSpotifyTokens(req, res) {
       });
 
       // Send token back to the client for future authentication use
-      res.status(200).send({ auth: true, token: token });
+      res.status(200).send(
+        {
+          displayName: user.displayName,
+          profileImageURI: user.profileImageURI,
+          token: token,
+          memories: user.memories
+        }
+      );
     });
 }
 
