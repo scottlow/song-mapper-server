@@ -1,0 +1,38 @@
+{
+  "name": "song-mapper-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "axios": "^0.16.2",
+    "babel-preset-es2015-node6": "^0.4.0",
+    "babel-register": "^6.26.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "install": "^0.10.4",
+    "jsonwebtoken": "^8.2.0",
+    "mongoose": "^5.0.7",
+    "mongoose-findorcreate": "^3.0.0",
+    "morgan": "^1.9.0",
+    "npm": "^5.7.1",
+    "qs": "^6.5.1",
+    "source-map-support": "^0.5.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "nodemon app_hooked.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scottlow/song-mapper-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/scottlow/song-mapper-server/issues"
+  },
+  "homepage": "https://github.com/scottlow/song-mapper-server#readme"
+}
