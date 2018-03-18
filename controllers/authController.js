@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { URL, URLSearchParams} from 'url';
+import { URL, URLSearchParams } from 'url';
 import qs from 'qs'
 import { User } from '../models';
 import *  as constants from '../constants';
@@ -7,7 +7,84 @@ import * as config from '../config';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-async function requestSpotifyTokens(req, res) {
+function searchSpotify(req, res) {
+  checkUserToken(req, res)
+    .then(user => {
+      axios.get(constants.SPOTIFY_API_URL + '/search', {
+        params: {
+          'q': req.query.q,
+          'type': 'track'
+        },
+        headers: {
+          'Authorization': 'Bearer ' + user.accessToken
+        }
+      })
+      .then(response => {
+        res.status(200).send(response.data);
+      })
+      .catch(error => {
+        handleSpotifyError(error, user);
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+}
+
+function handleSpotifyError(error, user) {
+  console.log(error);
+  // TODO: Make this method retry the request eventually
+  // If Spotify said the user is unauthenticated, request a new token
+  if (error.response.status == 401) {
+    refreshSpotifyToken(user);
+  }
+}
+
+function checkUserToken(req, res) {
+  return new Promise((resolve, reject) => {
+    var token = req.headers['x-access-token'];
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+
+    jwt.verify(token, config.APP_SECRET, (err, decoded) => {
+      if (err) return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
+
+      User.findById(decoded.id, (error, user) => {
+        if (user) {
+          resolve(user);
+        } else {
+          reject(error);
+        }
+      });
+    });
+  });
+}
+
+function refreshSpotifyToken(user) {
+  // Request Spotify refresh token
+  try {
+    axios.post(constants.SPOTIFY_TOKEN_URL, qs.stringify({
+      'grant_type': constants.SPOTIFY_REFRESH_TOKEN,
+      'refresh_token': user.refreshToken
+    }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic ' + new Buffer(constants.SPOTIFY_CLIENT_ID + ':' + config.SPOTIFY_SECRET).toString('base64')
+        }
+      }).then(response => {
+        let tokenData = response.data;
+
+        user.accessToken = tokenData.access_token;
+        user.save();
+        return true;
+      });
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+}
+
+async function doLoginOrSignup(req, res) {
 
   let tokenResponse;
   let tokenData;
@@ -17,18 +94,19 @@ async function requestSpotifyTokens(req, res) {
   // Request Spotify access and refresh tokens
   try {
     tokenResponse = await axios.post(constants.SPOTIFY_TOKEN_URL, qs.stringify({
-      'grant_type' : constants.SPOTIFY_GRANT_TYPE,
+      'grant_type': constants.SPOTIFY_AUTHORIZATION_CODE,
       'code': req.body.code,
-      'redirect_uri' : constants.SPOTIFY_REDIRECT_URL
+      'redirect_uri': constants.SPOTIFY_REDIRECT_URL
     }),
-    {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + new Buffer(constants.SPOTIFY_CLIENT_ID + ':' + config.SPOTIFY_SECRET).toString('base64')
-      }
-    });
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic ' + new Buffer(constants.SPOTIFY_CLIENT_ID + ':' + config.SPOTIFY_SECRET).toString('base64')
+        }
+      });
 
     tokenData = tokenResponse.data;
+
   } catch (err) {
     console.log(err);
     return res.status(500).send();
@@ -36,17 +114,17 @@ async function requestSpotifyTokens(req, res) {
 
   // Request user data
   try {
-    userResponse = await axios.get(constants.SPOTIFY_API_URL + '/v1/me', 
-    {
-      headers: {
-        'Authorization': tokenData.token_type + ' ' + tokenData.access_token
-      }
-    });
+    userResponse = await axios.get(constants.SPOTIFY_API_URL + '/me',
+      {
+        headers: {
+          'Authorization': tokenData.token_type + ' ' + tokenData.access_token
+        }
+      });
 
     userData = userResponse.data;
   } catch (err) {
-      console.log(err);
-      return res.status(500).send(); 
+    console.log(err);
+    return res.status(500).send();
   }
 
   // Find or create a user object to authenticate on the client
@@ -55,14 +133,14 @@ async function requestSpotifyTokens(req, res) {
       email: userData.email
     },
     {
-      displayName: userData.display_name, 
+      displayName: userData.display_name,
       profileImageURI: userData.images[0].url,
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token
     }, (err, user, created) => {
 
       // Log errors
-      if(err) {
+      if (err) {
         return res.status(500).send('There was a problem registering the user');
       }
 
@@ -83,4 +161,4 @@ async function requestSpotifyTokens(req, res) {
     });
 }
 
-export { requestSpotifyTokens }
+export { doLoginOrSignup, searchSpotify }
