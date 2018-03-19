@@ -161,4 +161,4 @@ async function doLoginOrSignup(req, res) {
     });
 }
 
-export { doLoginOrSignup, searchSpotify }
+export { doLoginOrSignup, searchSpotify, checkUserToken }

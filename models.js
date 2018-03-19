@@ -5,21 +5,21 @@ var Schema = mongoose.Schema;
 
 var LocationSchema = Schema({
   name: String,
+  gId: String,
+  address: String,
   lat: String,
   long: String
 });
 
-var TrackSchema = Schema({
+var SongSchema = Schema({
   title: String,
   artist: String,
   spotifyURI: String,
-  genre: String,
-  albumArtURI: String,
-  duration: Number
+  albumArtURI: String
 });
 
 var MemorySchema = Schema({
-  track: TrackSchema,
+  song: SongSchema,
   location: LocationSchema
 });
 
@@ -33,8 +33,12 @@ var UserSchema = Schema({
   });
 
   UserSchema.plugin(findOrCreate);
+  LocationSchema.plugin(findOrCreate);
+  SongSchema.plugin(findOrCreate);
 
   var User = mongoose.model('User', UserSchema);
   var Memory = mongoose.model('Memory', MemorySchema);
+  var Song = mongoose.model('Song', SongSchema);
+  var Location = mongoose.model('Location', LocationSchema);
 
-  export { User }
+  export { User, Memory, Song, Location }
