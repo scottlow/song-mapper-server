@@ -8,23 +8,29 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { checkUserToken } from './authController';
 
+function getMemories(req, res) {
+    let memories = Memory.find({}, (err, memories) => {
+        res.send(memories);
+    });
+}
+
 function createMemory(req, res) {
     checkUserToken(req, res)
         .then(user => {
             let data = req.body.data;
-            let location = data.location;
+            let memoryLocation = data.location;
             let song = data.song;
 
             // Get or create the location object associated with this memory
             Location.findOrCreate(
             {
-                gId: location.gId
+                gId: memoryLocation.gId
             },
             {
-                name: location.name,
-                address: location.address,
-                lat: location.lat,
-                long: location.long
+                name: memoryLocation.name,
+                address: memoryLocation.address,
+                lat: memoryLocation.location.lat,
+                long: memoryLocation.location.long
             },
             (locationError, location, didCreateLocation) => {
 
@@ -50,6 +56,8 @@ function createMemory(req, res) {
                         location: location
                     });
 
+                    memory.save();
+
                     user.memories.push(memory);
                     user.save();
 
@@ -59,4 +67,4 @@ function createMemory(req, res) {
         });
 }
 
-export { createMemory }
+export { createMemory, getMemories }

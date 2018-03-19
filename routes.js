@@ -7,6 +7,7 @@ const router = express.Router();
 // Define routes
 router.route('/login').post(authController.doLoginOrSignup)
 router.route('/spotify/search').get(authController.searchSpotify);
-router.route('/memories/create').post(memoryController.createMemory)
+router.route('/memories/create').post(memoryController.createMemory);
+router.route('/memories').get(memoryController.getMemories);
 
 export default router;

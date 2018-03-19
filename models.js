@@ -7,8 +7,8 @@ var LocationSchema = Schema({
   name: String,
   gId: String,
   address: String,
-  lat: String,
-  long: String
+  lat: Number,
+  long: Number
 });
 
 var SongSchema = Schema({
