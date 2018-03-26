@@ -7,30 +7,6 @@ import * as config from '../config';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-function searchSpotify(req, res) {
-  checkUserToken(req, res)
-    .then(user => {
-      axios.get(constants.SPOTIFY_API_URL + '/search', {
-        params: {
-          'q': req.query.q,
-          'type': 'track'
-        },
-        headers: {
-          'Authorization': 'Bearer ' + user.accessToken
-        }
-      })
-      .then(response => {
-        res.status(200).send(response.data);
-      })
-      .catch(error => {
-        handleSpotifyError(error, user);
-      });
-    })
-    .catch(error => {
-      console.log(error);
-    });
-}
-
 function handleSpotifyError(error, user) {
   console.log(error);
   // TODO: Make this method retry the request eventually
@@ -61,6 +37,7 @@ function checkUserToken(req, res) {
 
 function refreshSpotifyToken(user) {
   // Request Spotify refresh token
+  console.log('Refreshing')
   try {
     axios.post(constants.SPOTIFY_TOKEN_URL, qs.stringify({
       'grant_type': constants.SPOTIFY_REFRESH_TOKEN,
@@ -73,6 +50,7 @@ function refreshSpotifyToken(user) {
         }
       }).then(response => {
         let tokenData = response.data;
+        console.log(tokenData);
 
         user.accessToken = tokenData.access_token;
         user.save();
@@ -161,4 +139,4 @@ async function doLoginOrSignup(req, res) {
     });
 }
 
-export { doLoginOrSignup, searchSpotify, checkUserToken }
+export { doLoginOrSignup, checkUserToken, handleSpotifyError }

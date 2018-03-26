@@ -14,6 +14,12 @@ function getMemories(req, res) {
     });
 }
 
+function getMemoriesAtLocation(req, res) {
+    let memories = Memory.find({ 'location.gId': req.params.locationGID }, (err, memories) => {
+        res.send(memories);
+    });
+}
+
 function createMemory(req, res) {
     checkUserToken(req, res)
         .then(user => {
@@ -23,48 +29,48 @@ function createMemory(req, res) {
 
             // Get or create the location object associated with this memory
             Location.findOrCreate(
-            {
-                gId: memoryLocation.gId
-            },
-            {
-                name: memoryLocation.name,
-                address: memoryLocation.address,
-                lat: memoryLocation.location.lat,
-                long: memoryLocation.location.long
-            },
-            (locationError, location, didCreateLocation) => {
-
-                // Log errors
-                if (locationError) {
-                    return res.status(500).send('There was a problem getting the location');
-                }
-
-                // Get or create the song object associated with this memory
-                Song.findOrCreate(
                 {
-                    id: song.id
+                    gId: memoryLocation.gId
                 },
                 {
-                    title: song.title,
-                    artist: song.artist,
-                    spotifyURI: song.spotifyURI,
-                    albumArtURI: song.albumArtURI
+                    name: memoryLocation.name,
+                    address: memoryLocation.address,
+                    lat: memoryLocation.location.lat,
+                    long: memoryLocation.location.long
                 },
-                (songError, song, didCreateSong) => {
-                    let memory = new Memory({
-                        song: song,
-                        location: location
-                    });
+                (locationError, location, didCreateLocation) => {
 
-                    memory.save();
+                    // Log errors
+                    if (locationError) {
+                        return res.status(500).send('There was a problem getting the location');
+                    }
 
-                    user.memories.push(memory);
-                    user.save();
+                    // Get or create the song object associated with this memory
+                    Song.findOrCreate(
+                        {
+                            id: song.id
+                        },
+                        {
+                            title: song.title,
+                            artist: song.artist,
+                            spotifyURI: song.spotifyURI,
+                            albumArtURI: song.albumArtURI
+                        },
+                        (songError, song, didCreateSong) => {
+                            let memory = new Memory({
+                                song: song,
+                                location: location
+                            });
 
-                    res.status(200).send();
+                            memory.save();
+
+                            user.memories.push(memory);
+                            user.save();
+
+                            res.status(200).send();
+                        });
                 });
-            });
         });
 }
 
-export { createMemory, getMemories }
+export { createMemory, getMemories, getMemoriesAtLocation }
