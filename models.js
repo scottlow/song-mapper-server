@@ -23,13 +23,19 @@ var MemorySchema = Schema({
   location: LocationSchema
 });
 
+var UserTokenSchema = Schema({
+  accessToken: String,
+  refreshToken: String,
+  grantedAt: Number,
+  expiresIn: Number
+});
+
 var UserSchema = Schema({
     displayName: String,
     email: String,
     memories: [MemorySchema],
     profileImageURI: String,
-    accessToken: String,
-    refreshToken: String
+    token: UserTokenSchema
   });
 
   UserSchema.plugin(findOrCreate);
@@ -40,5 +46,6 @@ var UserSchema = Schema({
   var Memory = mongoose.model('Memory', MemorySchema);
   var Song = mongoose.model('Song', SongSchema);
   var Location = mongoose.model('Location', LocationSchema);
+  var UserToken = mongoose.model('Token', UserTokenSchema);
 
   export { User, Memory, Song, Location }

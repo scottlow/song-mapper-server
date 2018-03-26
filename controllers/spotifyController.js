@@ -6,47 +6,61 @@ import *  as constants from '../constants';
 import * as config from '../config';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import { checkUserToken, handleSpotifyError } from './authController';
+import { checkUserToken } from './authController';
 
 function searchSpotify(req, res) {
-    checkUserToken(req, res)
-        .then(user => {
-            axios.get(constants.SPOTIFY_API_URL + '/search', {
-                params: {
-                    'q': req.query.q,
-                    'type': 'track'
-                },
-                headers: {
-                    'Authorization': 'Bearer ' + user.accessToken
-                }
-            }).then(response => {
-                res.status(200).send(response.data);
-            }).catch(error => {
-                handleSpotifyError(error, user);
-            });
-        })
-        .catch(error => {
-            console.log(error);
-        });
+    axios.get(constants.SPOTIFY_API_URL + '/search', {
+        params: {
+            'q': req.query.q,
+            'type': 'track'
+        }
+    }).then(response => {
+        res.status(200).send(response.data);
+    }).catch(error => {
+        console.log(error);
+        res.status(500).send("error");
+    });
 }
 
 function playSong(req, res) {
+    axios.put(constants.SPOTIFY_API_URL + '/me/player/play',
+        {
+            uris: req.body.uris
+        }).then(response => {
+            res.status(200).send();
+        }).catch(error => {
+            if(error.response.status == 403) {
+                // This means we are out of sync with Spotify
+                res.status(200).send();
+            } else {
+                res.status(error.response.status).send();
+            }
+        });
+}
+
+function getPlayerInfo(req, res) {
+    axios.get(constants.SPOTIFY_API_URL + '/me/player').then(response => {
+            res.status(200).send(response.data);
+        }).catch(error => {
+            console.log(error);
+            res.status(500).send("error");
+        });
+}
+
+function pauseSong(req, res) {
     checkUserToken(req, res)
         .then(user => {
-            axios.put(constants.SPOTIFY_API_URL + '/me/player/play',
-            {
-                uris: req.body.uris
-            }, 
-            {
-                headers: {
-                    'Authorization': 'Bearer ' + user.accessToken
-                },
-            }).then(response => {
+            axios.put(constants.SPOTIFY_API_URL + '/me/player/pause').then(response => {
                 res.status(200).send();
             }).catch(error => {
-                handleSpotifyError(error, user);
-                res.status(500).send(error.response.statusText);
+                if(error.response.status == 403) {
+                    // This means we are out of sync with Spotify
+                    res.status(200).send();
+                } else {
+                    res.status(error.response.status).send();
+                }
             });
         });
 }
-export { searchSpotify, playSong }
+
+export { searchSpotify, playSong, pauseSong, getPlayerInfo }

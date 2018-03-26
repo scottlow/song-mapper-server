@@ -7,15 +7,6 @@ import * as config from '../config';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-function handleSpotifyError(error, user) {
-  console.log(error);
-  // TODO: Make this method retry the request eventually
-  // If Spotify said the user is unauthenticated, request a new token
-  if (error.response.status == 401) {
-    refreshSpotifyToken(user);
-  }
-}
-
 function checkUserToken(req, res) {
   return new Promise((resolve, reject) => {
     var token = req.headers['x-access-token'];
@@ -33,33 +24,6 @@ function checkUserToken(req, res) {
       });
     });
   });
-}
-
-function refreshSpotifyToken(user) {
-  // Request Spotify refresh token
-  console.log('Refreshing')
-  try {
-    axios.post(constants.SPOTIFY_TOKEN_URL, qs.stringify({
-      'grant_type': constants.SPOTIFY_REFRESH_TOKEN,
-      'refresh_token': user.refreshToken
-    }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Basic ' + new Buffer(constants.SPOTIFY_CLIENT_ID + ':' + config.SPOTIFY_SECRET).toString('base64')
-        }
-      }).then(response => {
-        let tokenData = response.data;
-        console.log(tokenData);
-
-        user.accessToken = tokenData.access_token;
-        user.save();
-        return true;
-      });
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
 }
 
 async function doLoginOrSignup(req, res) {
@@ -113,9 +77,15 @@ async function doLoginOrSignup(req, res) {
     {
       displayName: userData.display_name,
       profileImageURI: userData.images[0].url,
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token
+      token: {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        expiresIn: tokenData.expires_in,
+        grantedAt: new Date().getTime()
+      }
     }, (err, user, created) => {
+
+      console.log(user);
 
       // Log errors
       if (err) {
@@ -126,6 +96,9 @@ async function doLoginOrSignup(req, res) {
       var token = jwt.sign({ id: user.id }, config.APP_SECRET, {
         expiresIn: 86400
       });
+
+      // Set auth token
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + user.token.accessToken;
 
       // Send token back to the client for future authentication use
       res.status(200).send(
@@ -139,4 +112,4 @@ async function doLoginOrSignup(req, res) {
     });
 }
 
-export { doLoginOrSignup, checkUserToken, handleSpotifyError }
+export { doLoginOrSignup, checkUserToken }
