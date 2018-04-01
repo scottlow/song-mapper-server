@@ -35,8 +35,10 @@ function createMemory(req, res) {
                 {
                     name: memoryLocation.name,
                     address: memoryLocation.address,
-                    lat: memoryLocation.location.lat,
-                    long: memoryLocation.location.long
+                    pinLocation: {
+                        lat: memoryLocation.pinLocation.lat,
+                        long: memoryLocation.pinLocation.long
+                    }
                 },
                 (locationError, location, didCreateLocation) => {
 

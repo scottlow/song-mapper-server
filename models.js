@@ -7,8 +7,10 @@ var LocationSchema = Schema({
   name: String,
   gId: String,
   address: String,
-  lat: Number,
-  long: Number
+  pinLocation: {
+    lat: Number,
+    long: Number
+  }
 });
 
 var SongSchema = Schema({
@@ -31,21 +33,21 @@ var UserTokenSchema = Schema({
 });
 
 var UserSchema = Schema({
-    displayName: String,
-    email: String,
-    memories: [MemorySchema],
-    profileImageURI: String,
-    token: UserTokenSchema
-  });
+  displayName: String,
+  email: String,
+  memories: [MemorySchema],
+  profileImageURI: String,
+  token: UserTokenSchema
+});
 
-  UserSchema.plugin(findOrCreate);
-  LocationSchema.plugin(findOrCreate);
-  SongSchema.plugin(findOrCreate);
+UserSchema.plugin(findOrCreate);
+LocationSchema.plugin(findOrCreate);
+SongSchema.plugin(findOrCreate);
 
-  var User = mongoose.model('User', UserSchema);
-  var Memory = mongoose.model('Memory', MemorySchema);
-  var Song = mongoose.model('Song', SongSchema);
-  var Location = mongoose.model('Location', LocationSchema);
-  var UserToken = mongoose.model('Token', UserTokenSchema);
+var User = mongoose.model('User', UserSchema);
+var Memory = mongoose.model('Memory', MemorySchema);
+var Song = mongoose.model('Song', SongSchema);
+var Location = mongoose.model('Location', LocationSchema);
+var UserToken = mongoose.model('Token', UserTokenSchema);
 
-  export { User, Memory, Song, Location }
+export { User, Memory, Song, Location }
