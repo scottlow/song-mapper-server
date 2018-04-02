@@ -12,6 +12,7 @@ router.route('/spotify/search').get(tokenMiddleware.checkRefreshToken, spotifyCo
 router.route('/spotify/playback/play').post(tokenMiddleware.checkRefreshToken, spotifyController.playSong);
 router.route('/spotify/playback/pause').post(tokenMiddleware.checkRefreshToken, spotifyController.pauseSong);
 router.route('/spotify/playback').get(tokenMiddleware.checkRefreshToken, spotifyController.getPlayerInfo);
+router.route('/me/memories').get(tokenMiddleware.checkRefreshToken, memoryController.getCurrentUserMemories);
 router.route('/memories/create').post(tokenMiddleware.checkRefreshToken, memoryController.createMemory);
 router.route('/memories').get(tokenMiddleware.checkRefreshToken, memoryController.getMemories);
 router.route('/memories/location/:locationGID').get(tokenMiddleware.checkRefreshToken, memoryController.getMemoriesAtLocation);

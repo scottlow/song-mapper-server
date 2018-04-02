@@ -94,7 +94,7 @@ async function doLoginOrSignup(req, res) {
 
       // Generate token used for client and server side authentication
       var token = jwt.sign({ id: user.id }, config.APP_SECRET, {
-        expiresIn: 86400
+        expiresIn: "7d"
       });
 
       // Set auth token

@@ -8,6 +8,13 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { checkUserToken } from './authController';
 
+function getCurrentUserMemories(req, res) {
+    checkUserToken(req, res)
+        .then(user => {
+            res.send(user.memories);
+    });
+}
+
 function getMemories(req, res) {
     let memories = Memory.find({}, (err, memories) => {
         res.send(memories);
@@ -75,4 +82,9 @@ function createMemory(req, res) {
         });
 }
 
-export { createMemory, getMemories, getMemoriesAtLocation }
+export { 
+    createMemory,
+    getMemories,
+    getMemoriesAtLocation,
+    getCurrentUserMemories
+}
