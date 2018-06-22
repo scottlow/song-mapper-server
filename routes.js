@@ -15,6 +15,7 @@ router.route('/spotify/playback/volume').post(tokenMiddleware.checkRefreshToken,
 router.route('/spotify/playback').get(tokenMiddleware.checkRefreshToken, spotifyController.getPlayerInfo);
 router.route('/me/memories').get(tokenMiddleware.checkRefreshToken, memoryController.getCurrentUserMemories);
 router.route('/memories/create').post(tokenMiddleware.checkRefreshToken, memoryController.createMemory);
+router.route('/me/memories/delete').delete(tokenMiddleware.checkRefreshToken, memoryController.deleteMemory);
 router.route('/memories').get(tokenMiddleware.checkRefreshToken, memoryController.getMemories);
 router.route('/memories/location/:locationGID').get(tokenMiddleware.checkRefreshToken, memoryController.getMemoriesAtLocation);
 

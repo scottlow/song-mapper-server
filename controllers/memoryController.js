@@ -11,10 +11,12 @@ import { checkUserToken } from './authController';
 function getCurrentUserMemories(req, res) {
     checkUserToken(req, res)
         .then(user => {
-            user.memories.forEach(memory => {
+            // Required since MongoDB objects are immutable
+            let userMemories = user.memories.toObject();
+            userMemories.forEach(memory => {
                 memory.song.isSavedByCurrentUser = true;
             });
-            res.send(user.memories);
+            res.send(userMemories);
         });
 }
 
@@ -60,7 +62,7 @@ function createMemory(req, res) {
                     // Get or create the song object associated with this memory
                     Song.findOrCreate(
                         {
-                            id: song.id
+                            spotifyURI: song.spotifyURI
                         },
                         {
                             title: song.title,
@@ -85,9 +87,32 @@ function createMemory(req, res) {
         });
 }
 
+function deleteMemory(req, res) {
+    checkUserToken(req, res)
+        .then(user => {
+            Memory.findByIdAndRemove(req.query.memoryId, (err, memory) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send('There was a problem finding the memory to delete');
+                } else {
+                    console.log(memory);
+                    console.log(user);
+                    User.update({ '_id': user.id }, { '$pull': { 'memories': { _id: req.query.memoryId } } }, (updateErr, numAffected) => {
+                        if (updateErr) {
+                            console.log(updateErr);
+                            return res.status(500).send('There was a problem updating the users\' memories after deleting');
+                        }
+                        res.status(200).send();
+                    });
+                }
+            });
+        });
+}
+
 export {
     createMemory,
     getMemories,
     getMemoriesAtLocation,
-    getCurrentUserMemories
+    getCurrentUserMemories,
+    deleteMemory
 }

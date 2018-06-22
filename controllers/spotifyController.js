@@ -22,26 +22,32 @@ function searchSpotify(req, res) {
 }
 
 function playSong(req, res) {
-    axios.put(constants.SPOTIFY_API_URL + '/me/player/play',
-        {
-            uris: req.body.uris
-        }).then(response => {
-            res.status(200).send();
-        }).catch(error => {
-            if(error.response.status == 403) {
-                // This means we are out of sync with Spotify
-                res.status(200).send();
-            } else {
-                res.status(error.response.status).send();
-            }
+    checkUserToken(req, res)
+        .then(user => {
+            axios.put(constants.SPOTIFY_API_URL + '/me/player/play',
+                {
+                    uris: req.body.uris
+                }).then(response => {
+                    res.status(200).send();
+                }).catch(error => {
+                    if (error.response.status == 403) {
+                        // This means we are out of sync with Spotify
+                        res.status(200).send();
+                    } else {
+                        res.status(error.response.status).send();
+                    }
+                });
         });
 }
 
 function getPlayerInfo(req, res) {
-    axios.get(constants.SPOTIFY_API_URL + '/me/player').then(response => {
-            res.status(200).send(response.data);
-        }).catch(error => {
-            res.status(error.response.status).send();
+    checkUserToken(req, res)
+        .then(user => {
+            axios.get(constants.SPOTIFY_API_URL + '/me/player').then(response => {
+                res.status(200).send(response.data);
+            }).catch(error => {
+                res.status(error.response.status).send();
+            });
         });
 }
 
@@ -51,7 +57,7 @@ function pauseSong(req, res) {
             axios.put(constants.SPOTIFY_API_URL + '/me/player/pause').then(response => {
                 res.status(200).send();
             }).catch(error => {
-                if(error.response.status == 403) {
+                if (error.response.status == 403) {
                     // This means we are out of sync with Spotify
                     res.status(200).send();
                 } else {
