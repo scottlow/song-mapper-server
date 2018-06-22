@@ -17,7 +17,6 @@ function searchSpotify(req, res) {
     }).then(response => {
         res.status(200).send(response.data);
     }).catch(error => {
-        console.log(error);
         res.status(500).send("error");
     });
 }
@@ -42,8 +41,7 @@ function getPlayerInfo(req, res) {
     axios.get(constants.SPOTIFY_API_URL + '/me/player').then(response => {
             res.status(200).send(response.data);
         }).catch(error => {
-            console.log(error);
-            res.status(500).send("error");
+            res.status(error.response.status).send();
         });
 }
 
@@ -63,4 +61,19 @@ function pauseSong(req, res) {
         });
 }
 
-export { searchSpotify, playSong, pauseSong, getPlayerInfo }
+function setVolume(req, res) {
+    checkUserToken(req, res)
+        .then(user => {
+            axios.put(constants.SPOTIFY_API_URL + '/me/player/volume', undefined, {
+                params: {
+                    'volume_percent': req.body.volume_percent
+                }
+            }).then(response => {
+                res.status(200).send(response.data);
+            }).catch(error => {
+                res.status(500).send("error");
+            });
+        });
+}
+
+export { searchSpotify, playSong, pauseSong, getPlayerInfo, setVolume }

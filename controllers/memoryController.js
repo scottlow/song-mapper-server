@@ -11,8 +11,11 @@ import { checkUserToken } from './authController';
 function getCurrentUserMemories(req, res) {
     checkUserToken(req, res)
         .then(user => {
+            user.memories.forEach(memory => {
+                memory.song.isSavedByCurrentUser = true;
+            });
             res.send(user.memories);
-    });
+        });
 }
 
 function getMemories(req, res) {
@@ -82,7 +85,7 @@ function createMemory(req, res) {
         });
 }
 
-export { 
+export {
     createMemory,
     getMemories,
     getMemoriesAtLocation,
