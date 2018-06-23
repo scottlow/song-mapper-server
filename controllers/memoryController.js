@@ -81,7 +81,7 @@ function createMemory(req, res) {
                             user.memories.push(memory);
                             user.save();
 
-                            res.status(200).send();
+                            res.status(200).send(memory);
                         });
                 });
         });
