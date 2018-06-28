@@ -9,6 +9,8 @@ const router = express.Router();
 // Define routes
 router.route('/login').post(authController.doLoginOrSignup)
 router.route('/spotify/search').get(tokenMiddleware.checkRefreshToken, spotifyController.searchSpotify);
+router.route('/spotify/playback/set-player').post(tokenMiddleware.checkRefreshToken, spotifyController.setPlayer);
+router.route('/spotify/playback/device-list').get(tokenMiddleware.checkRefreshToken, spotifyController.getDeviceList);
 router.route('/spotify/playback/play').post(tokenMiddleware.checkRefreshToken, spotifyController.playSong);
 router.route('/spotify/playback/pause').post(tokenMiddleware.checkRefreshToken, spotifyController.pauseSong);
 router.route('/spotify/playback/volume').post(tokenMiddleware.checkRefreshToken, spotifyController.setVolume);

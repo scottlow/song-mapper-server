@@ -17,17 +17,48 @@ function searchSpotify(req, res) {
     }).then(response => {
         res.status(200).send(response.data);
     }).catch(error => {
-        res.status(500).send("error");
+        res.status(500).send("Error searching Spotify");
     });
+}
+
+function getDeviceList(req, res) {
+    checkUserToken(req, res)
+    .then(user => {
+        axios.get(constants.SPOTIFY_API_URL + '/me/player/devices')
+        .then(response => {
+            res.status(200).send(response.data);
+        }).catch(error => {
+            res.status(500).send("Error getting users' devices");
+        });
+    });
+}
+
+function setPlayer(req, res) {
+    checkUserToken(req, res)
+        .then(() => {
+            axios.put(constants.SPOTIFY_API_URL + '/me/player',
+            {
+                device_ids: req.body.device_ids
+            }).then(() => {
+                    res.status(200).send();
+                }).catch(error => {
+                    if (error.response.status == 403) {
+                        // This means we are out of sync with Spotify
+                        res.status(200).send();
+                    } else {
+                        res.status(error.response.status).send();
+                    }
+                });
+        });
 }
 
 function playSong(req, res) {
     checkUserToken(req, res)
-        .then(user => {
+        .then(() => {
             axios.put(constants.SPOTIFY_API_URL + '/me/player/play',
-                {
-                    uris: req.body.uris
-                }).then(response => {
+            {
+                uris: req.body.uris
+            }).then(() => {
                     res.status(200).send();
                 }).catch(error => {
                     if (error.response.status == 403) {
@@ -82,4 +113,4 @@ function setVolume(req, res) {
         });
 }
 
-export { searchSpotify, playSong, pauseSong, getPlayerInfo, setVolume }
+export { searchSpotify, playSong, pauseSong, getPlayerInfo, setVolume, getDeviceList, setPlayer }
