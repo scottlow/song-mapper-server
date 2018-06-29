@@ -44,8 +44,13 @@ function checkRefreshToken(req, res, next) {
   }
 
   jwt.verify(token, config.APP_SECRET, (err, decoded) => {
+    // Check if user's token is expired
+    if (err) res.status(401).send();
+    
     User.findById(decoded.id, (error, user) => {
       if (user) {
+        res.locals.user = user;
+        res.locals.isAuthenticated = true;
         axios.defaults.headers.common['Authorization'] = 'Bearer ' + user.token.accessToken;
         let expiresInMs = user.token.expiresIn * 1000;
         if (user.token.grantedAt + expiresInMs <= new Date().getTime()) {
@@ -55,9 +60,9 @@ function checkRefreshToken(req, res, next) {
           });
         }
       }
+      next();
     });
   });
-  next();
 }
 
 export { checkRefreshToken }

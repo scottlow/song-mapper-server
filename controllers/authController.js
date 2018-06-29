@@ -7,23 +7,20 @@ import * as config from '../config';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-function checkUserToken(req, res) {
-  return new Promise((resolve, reject) => {
-    var token = req.headers['x-access-token'];
-    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
-
-    jwt.verify(token, config.APP_SECRET, (err, decoded) => {
-      if (err) return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
-
-      User.findById(decoded.id, (error, user) => {
-        if (user) {
-          resolve(user);
-        } else {
-          reject(error);
-        }
-      });
-    });
+function generateToken(userId) {
+  return jwt.sign({ id: userId }, config.APP_SECRET, {
+    expiresIn: "7d"
   });
+}
+
+function getRefreshToken(req, res) {
+  let userId = req.body.user_id;
+  if (userId) {
+    let token = generateToken(userId);
+    res.status(200).send({ token: token });
+  } else {
+    res.status(500).send();
+  }
 }
 
 async function doLoginOrSignup(req, res) {
@@ -85,17 +82,13 @@ async function doLoginOrSignup(req, res) {
       }
     }, (err, user, created) => {
 
-      console.log(user);
-
       // Log errors
       if (err) {
         return res.status(500).send('There was a problem registering the user');
       }
 
       // Generate token used for client and server side authentication
-      var token = jwt.sign({ id: user.id }, config.APP_SECRET, {
-        expiresIn: "7d"
-      });
+      let token = generateToken(user.id);
 
       // Set auth token
       axios.defaults.headers.common['Authorization'] = 'Bearer ' + user.token.accessToken;
@@ -103,6 +96,7 @@ async function doLoginOrSignup(req, res) {
       // Send token back to the client for future authentication use
       res.status(200).send(
         {
+          _id: user.id,
           displayName: user.displayName,
           profileImageURI: user.profileImageURI,
           token: token,
@@ -112,4 +106,4 @@ async function doLoginOrSignup(req, res) {
     });
 }
 
-export { doLoginOrSignup, checkUserToken }
+export { doLoginOrSignup, getRefreshToken }
