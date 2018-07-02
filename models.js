@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import findOrCreate from 'mongoose-findorcreate'
+import findOrCreate from 'mongoose-findorcreate';
+var timestamps = require('mongoose-timestamp');
 
 var Schema = mongoose.Schema;
 
@@ -43,6 +44,7 @@ var UserSchema = Schema({
 UserSchema.plugin(findOrCreate);
 LocationSchema.plugin(findOrCreate);
 SongSchema.plugin(findOrCreate);
+MemorySchema.plugin(timestamps);
 
 var User = mongoose.model('User', UserSchema);
 var Memory = mongoose.model('Memory', MemorySchema);

@@ -3,7 +3,7 @@ import { User, Location, Song, Memory } from '../models';
 function getCurrentUserMemories(req, res) {
     if (res.locals.isAuthenticated) {
         let user = res.locals.user;
-        let userMemories = user.memories.toObject();
+        let userMemories = user.memories.toObject().sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
         userMemories.forEach(memory => {
             memory.song.isSavedByCurrentUser = true;
         });
@@ -12,13 +12,13 @@ function getCurrentUserMemories(req, res) {
 }
 
 function getMemories(req, res) {
-    let memories = Memory.find({}, (err, memories) => {
+    Memory.find({}, (err, memories) => {
         res.send(memories);
     });
 }
 
 function getMemoriesAtLocation(req, res) {
-    let memories = Memory.find({ 'location.gId': req.params.locationGID }, (err, memories) => {
+    Memory.find({ 'location.gId': req.params.locationGID }, (err, memories) => {
         res.send(memories);
     });
 }
@@ -67,12 +67,13 @@ function createMemory(req, res) {
                             location: location
                         });
 
-                        memory.save();
+                        memory.save((err) => {
+                            if (err) res.status(500).send();
 
-                        user.memories.push(memory);
-                        user.save();
-
-                        res.status(200).send(memory);
+                            user.memories.push(memory);
+                            user.save();
+                            res.status(200).send(memory);
+                        });
                     });
             });
     }
